@@ -22,6 +22,12 @@ import { Reducer } from './types/reducers'
  *
  * @template Ext Dispatch signature added by a middleware.
  * @template S The type of the state supported by a middleware.
+ * 
+ *  * middleware既中间件，简单说在redux中作为扩展 dispatch 的唯一标准的方式。
+ * 不熟悉的同学自行去api了解一下， 大致结构是这样的
+ *  middleware = （store) => (next) =>(action) =>{ [return next(action)]} 详渐redux-thunk
+ *  为了方便debugger我们先自己写一个简单的logger middleware，看->src/index.js
+ *  applyMiddleware用来添加中间件，在修改数据的时候redux通过改造dispatch来实现中间件.
  */
 export default function applyMiddleware(): StoreEnhancer
 export default function applyMiddleware<Ext1, S>(
@@ -71,7 +77,11 @@ export default function applyMiddleware(
       getState: store.getState,
       dispatch: (action, ...args) => dispatch(action, ...args)
     }
+    // 调用每一个这样形式的middleware = store => next => action =>{}, 
+    // 组成一个这样[f(next)=>acticon=>next(action)...]的array，赋值给chain
     const chain = middlewares.map(middleware => middleware(middlewareAPI))
+    // compose(...chain)会形成一个调用链, next指代下一个函数的注册, 这就是中间件的返回值要是next(action)的原因
+    // 如果执行到了最后next就是原生的store.dispatch方法
     dispatch = compose<typeof dispatch>(...chain)(store.dispatch)
 
     return {

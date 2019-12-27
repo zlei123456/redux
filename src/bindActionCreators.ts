@@ -5,6 +5,7 @@ import {
   ActionCreatorsMapObject
 } from './types/actions'
 
+// 返回绑定的action函数。调用用dispatch执行。
 function bindActionCreator<A extends AnyAction = AnyAction>(
   actionCreator: ActionCreator<A>,
   dispatch: Dispatch
@@ -34,6 +35,8 @@ function bindActionCreator<A extends AnyAction = AnyAction>(
  * every action creator wrapped into the `dispatch` call. If you passed a
  * function as `actionCreators`, the return value will also be a single
  * function.
+ * 
+ * connect mapDispatchToProps中绑定  action to dispatch
  */
 export default function bindActionCreators<A, C extends ActionCreator<A>>(
   actionCreator: C,

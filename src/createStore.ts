@@ -37,6 +37,21 @@ import isPlainObject from './utils/isPlainObject'
  *
  * @returns A Redux store that lets you read the state, dispatch actions
  * and subscribe to changes.
+ * 
+ * 创建一个保存状态树的Redux store。
+ *  只有调用dispatch才能改变store中的数据。
+ * 
+ * 您的应用中应该只有一个store。
+ * 你可以用combineReducers函数合并多个reducers到一个reducer中，
+ * 来响应不同状态树的action，   
+ * 
+ *  @param reducer 合并的reducer
+ * 
+ *  @param preloadedState 初始化数据，或Enhancer参数
+ * 
+ *  @param Enhancer 第三方库和增强库集成
+ * 
+ *  @returns  
  */
 export default function createStore<
   S,
@@ -88,6 +103,11 @@ export default function createStore<
       throw new Error('Expected the enhancer to be a function.')
     }
 
+    /**
+     * 如果函数中有enhancer 或者 applyMiddleware需要执行 就在下面的函数中执行
+     * 比如你增加了redux-actions第三方组件，就是在下面的函数做了处理，具体如何处理可以参看applyMiddleware.ts文件
+     */
+   
     return enhancer(createStore)(reducer, preloadedState as PreloadedState<
       S
     >) as Store<ExtendState<S, StateExt>, A, StateExt, Ext> & Ext
@@ -97,9 +117,9 @@ export default function createStore<
     throw new Error('Expected the reducer to be a function.')
   }
 
-  let currentReducer = reducer
+  let currentReducer = reducer   
   let currentState = preloadedState as S
-  let currentListeners: (() => void)[] | null = []
+  let currentListeners: (() => void)[] | null = []    //
   let nextListeners = currentListeners
   let isDispatching = false
 
@@ -118,7 +138,7 @@ export default function createStore<
 
   /**
    * Reads the state tree managed by the store.
-   *
+   * 获得store数据
    * @returns The current state tree of your application.
    */
   function getState(): S {
@@ -153,6 +173,8 @@ export default function createStore<
    * registered before the `dispatch()` started will be called with the latest
    * state by the time it exits.
    *
+   *  监听所有的action文件中的dispatch事件；
+   * 
    * @param listener A callback to be invoked on every dispatch.
    * @returns A function to remove this change listener.
    */
@@ -190,6 +212,7 @@ export default function createStore<
       isSubscribed = false
 
       ensureCanMutateNextListeners()
+      // 找到并删除当前的listener
       const index = nextListeners.indexOf(listener)
       nextListeners.splice(index, 1)
       currentListeners = null
@@ -220,8 +243,12 @@ export default function createStore<
    *
    * Note that, if you use a custom middleware, it may wrap `dispatch()` to
    * return something else (for example, a Promise you can await).
+   * 
+   * 
+   * 发送一个action
    */
   function dispatch(action: A) {
+    // 判断action是不是纯粹的对象
     if (!isPlainObject(action)) {
       throw new Error(
         'Actions must be plain objects. ' +
@@ -242,11 +269,13 @@ export default function createStore<
 
     try {
       isDispatching = true
+      // 执行的combineReducers函数的返回值，（遍历所有的reducer，并作出响应， 并返回行的store数据）
       currentState = currentReducer(currentState, action)
     } finally {
       isDispatching = false
     }
 
+    // store数据变化，后面渲染ui
     const listeners = (currentListeners = nextListeners)
     for (let i = 0; i < listeners.length; i++) {
       const listener = listeners[i]
