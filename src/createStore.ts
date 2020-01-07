@@ -173,8 +173,7 @@ export default function createStore<
    * registered before the `dispatch()` started will be called with the latest
    * state by the time it exits.
    *
-   *  监听所有的action文件中的dispatch事件；
-   * 
+   *  订阅store的数据。(Privoder加了监听，监听store的数据) * 
    * @param listener A callback to be invoked on every dispatch.
    * @returns A function to remove this change listener.
    */
@@ -246,6 +245,8 @@ export default function createStore<
    * 
    * 
    * 发送一个action
+   * 1: action to reducer  (currentState = currentReducer(currentState, action))
+   * 2: 其中一个监听告诉react-redux的provider，唤起刷新，(listener())
    */
   function dispatch(action: A) {
     // 判断action是不是纯粹的对象
@@ -275,7 +276,7 @@ export default function createStore<
       isDispatching = false
     }
 
-    // store数据变化，后面渲染ui
+    // store数据变化，后面渲染ui （在react-redux的Provider.js中有加的监听函数， 改变store后)
     const listeners = (currentListeners = nextListeners)
     for (let i = 0; i < listeners.length; i++) {
       const listener = listeners[i]

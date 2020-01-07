@@ -192,6 +192,9 @@ export default function combineReducers(reducers: ReducersMapObject) {
 
     let hasChanged = false
     const nextState: StateFromReducersMapObject<typeof reducers> = {}
+    /** 
+     * 遍历所有的reducer,找到并执行
+    */
     for (let i = 0; i < finalReducerKeys.length; i++) {
       const key = finalReducerKeys[i]
       const reducer = finalReducers[key]
